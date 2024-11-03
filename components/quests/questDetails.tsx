@@ -6,6 +6,7 @@ import React, {
   useState,
   FunctionComponent,
   useContext,
+  useCallback,
 } from "react";
 import styles from "@styles/quests.module.css";
 import Task from "./task";
@@ -44,6 +45,7 @@ type QuestDetailsProps = {
   setShowDomainPopup: (show: boolean) => void;
   hasRootDomain: boolean;
   hasNftReward?: boolean;
+  fetchQuestData: () => void;
 };
 
 const QuestDetails: FunctionComponent<QuestDetailsProps> = ({
@@ -54,6 +56,7 @@ const QuestDetails: FunctionComponent<QuestDetailsProps> = ({
   setShowDomainPopup,
   hasRootDomain,
   hasNftReward,
+  fetchQuestData,
 }) => {
   const { address } = useAccount();
   const { provider } = useProvider();
@@ -160,53 +163,60 @@ const QuestDetails: FunctionComponent<QuestDetailsProps> = ({
   }, [quest, address]);
 
   // this filters the claimable rewards to find only the unclaimed ones (on chain)
-  useEffect(() => {
-    (async () => {
-      if (hasNftReward === false) return;
-      let unclaimed: EligibleReward[] = [];
-      for (const contractAddr in eligibleRewards) {
-        const { abi: quests_nft_abi } = await provider.getClassAt(contractAddr);
-        const perContractRewards = eligibleRewards[contractAddr];
-        const calldata = [];
-        for (const reward of perContractRewards) {
-          calldata.push({
-            quest_id: questId as string,
-            task_id: reward.task_id.toString(),
-            user_addr: address as string,
-          });
-        }
-        const contract = new Contract(quests_nft_abi, contractAddr, provider);
-        const response = await contract.call("get_tasks_status", [calldata]);
-        if (response !== null && Array.isArray(response)) {
-          const result = response.map((x: Result) => {
-            if (x === true) {
-              return 1;
-            }
-            return 0;
-          });
-
-          const unclaimedPerContractRewards = perContractRewards.filter(
-            (_, index) => result[index] === 0
-          );
-          unclaimed = unclaimed.concat(unclaimedPerContractRewards);
-        }
+  const getUnclaimedRewards = useCallback(async () => {
+    if (hasNftReward === false) return;
+    let unclaimed: EligibleReward[] = [];
+    for (const contractAddr in eligibleRewards) {
+      const { abi: quests_nft_abi } = await provider.getClassAt(contractAddr);
+      const perContractRewards = eligibleRewards[contractAddr];
+      const calldata = [];
+      for (const reward of perContractRewards) {
+        calldata.push({
+          quest_id: questId as string,
+          task_id: reward.task_id.toString(),
+          user_addr: address as string,
+        });
       }
-      setUnclaimedRewards(unclaimed);
-    })();
+      const contract = new Contract(quests_nft_abi, contractAddr, provider);
+      const response = await contract.call("get_tasks_status", [calldata]);
+      if (response !== null && Array.isArray(response)) {
+        const result = response.map((x: Result) => {
+          if (x === true) {
+            return 1;
+          }
+          return 0;
+        });
+
+        const unclaimedPerContractRewards = perContractRewards.filter(
+          (_, index) => result[index] === 0
+        );
+        unclaimed = unclaimed.concat(unclaimedPerContractRewards);
+      }
+    }
+    setUnclaimedRewards(unclaimed);
+  }, [questId, eligibleRewards, address, hasNftReward]);
+
+  useEffect(() => {
+    getUnclaimedRewards();
   }, [questId, eligibleRewards]);
 
-  const checkUserRewards = async () => {
+  const checkUserRewards = useCallback(async () => {
     if (!address) return;
+    fetchQuestData();
+    getUnclaimedRewards();
+    getTasksByQuestId({ questId: questId, address }).then((data) => {
+      if ((data as UserTask[]).length) setTasks(data as UserTask[]);
+    });
     const res = (await getCompletedQuests(address)) as CompletedQuests;
     if (res?.includes(parseInt(questId))) {
       setRewardsEnabled(true);
     }
-  };
+  }, [questId, address, getUnclaimedRewards]);
 
   useEffect(() => {
     if (!address) return;
     if (!hasNftReward) checkUserRewards();
-  }, [address, tasks]);
+  }, [address, tasks, checkUserRewards]);
 
   // this builds multicall for minting rewards
   useEffect(() => {
