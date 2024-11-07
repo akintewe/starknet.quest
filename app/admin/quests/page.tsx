@@ -17,8 +17,7 @@ import homePagestyles from "@styles/Home.module.css";
 import { a11yProps } from "@components/UI/tabs/a11y";
 import { CustomTabPanel } from "@components/UI/tabs/customTab";
 import { Tab, Tabs } from "@mui/material";
-
-import Loading from "@app/loading";
+import Loading from "@components/skeletons/loading";
 
 export default function Page() {
   const router = useRouter();

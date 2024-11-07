@@ -9,7 +9,7 @@ import { TEXT_TYPE } from "@constants/typography";
 import AppIcon from "./appIcon";
 import TokenIcon from "./tokenIcon";
 import { useNotification } from "@context/NotificationProvider";
-import Loading from "@app/loading";
+import Loading from "@components/skeletons/loading";
 import { useAccount,  useSendTransaction } from "@starknet-react/core";
 import { RewardsPerProtocol } from "../../types/backTypes";
 import { getRewards } from "@services/apiService";
