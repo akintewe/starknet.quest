@@ -10,7 +10,7 @@
 
 Leading quests platform on Starknet to onboard your next million users. We provide a platform for users to discover new apps and for companies to pitch your products and new features to users and get user feedback.
 
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/starknet-id/starknet.quest/issues?q=is:issue+is:open+label:%22open+for+contribution%22)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/lfglabs-dev/starknet.quest/pulls)
 
 ## About
 
@@ -48,6 +48,17 @@ Install dependencies and run the development build
 npm i
 npm run dev
 ```
+
+If you encounter installation issues, try these steps:
+
+* Clear npm cache: `npm cache clean --force`
+* Delete node_modules: `rm -rf node_modules`
+* Delete package-lock.json: `rm package-lock.json`
+* Retry installation: `npm i`
+
+If issues persist, you can try `npm i --legacy-peer-deps` or `npm i --force` as a last resort. 
+
+Note that using these flags may lead to dependency conflicts.
 
 You should see something like this:
 

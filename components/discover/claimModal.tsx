@@ -9,8 +9,8 @@ import { TEXT_TYPE } from "@constants/typography";
 import AppIcon from "./appIcon";
 import TokenIcon from "./tokenIcon";
 import { useNotification } from "@context/NotificationProvider";
-import Loading from "@app/loading";
-import { useAccount, useContractWrite } from "@starknet-react/core";
+import Loading from "@components/skeletons/loading";
+import { useAccount,  useSendTransaction } from "@starknet-react/core";
 import { RewardsPerProtocol } from "../../types/backTypes";
 import { getRewards } from "@services/apiService";
 import { gweiToEth } from "@utils/feltService";
@@ -86,7 +86,7 @@ const ClaimModal: FunctionComponent<ClaimModalProps> = ({
   const { address } = useAccount();
   const [rewards, setRewards] = useState<RewardsPerProtocol | null>(null);
   const [calls, setCalls] = useState<Call[]>([]);
-  const { writeAsync: execute } = useContractWrite({
+  const { sendAsync: execute } = useSendTransaction({
     calls: calls,
   });
 

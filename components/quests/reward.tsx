@@ -2,7 +2,7 @@ import React, { FunctionComponent, useCallback, useState } from "react";
 import styles from "../../styles/quests.module.css";
 import Button from "../UI/button";
 import ModalMessage from "../UI/modalMessage";
-import { useAccount, useContractWrite } from "@starknet-react/core";
+import { useAccount, useSendTransaction } from "@starknet-react/core";
 import { useRouter } from "next/navigation";
 import Lottie from "lottie-react";
 import verifiedLottie from "@public/visuals/verifiedLottie.json";
@@ -49,7 +49,7 @@ const Reward: FunctionComponent<RewardProps> = ({
   const [modalTxOpen, setModalTxOpen] = useState(false);
   const { address } = useAccount();
   const { addTransaction } = useNotificationManager();
-  const { writeAsync: executeMint } = useContractWrite({
+  const { sendAsync: executeMint } = useSendTransaction({
     calls: mintCalldata,
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);

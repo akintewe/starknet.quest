@@ -7,6 +7,8 @@ import { TEXT_TYPE } from "@constants/typography";
 import InputCard from "../inputCard";
 import Dropdown from "@components/UI/dropdown";
 import { SelectChangeEvent } from "@mui/material";
+import { FaTrash } from "react-icons/fa";
+import { AdminService } from "@services/authService";
 
 type QuizStepProps = {
   handleTasksInputChange: (
@@ -102,37 +104,36 @@ const QuizStep: FunctionComponent<QuizStepProps> = ({
     [steps]
   );
 
-  const handleCorrectAnswer = useCallback(
-    (optionIndex: number, questionIndex: number) => {
-      const updatedSteps = steps.map((step, i) => {
-        if (i === index && step.type === "Quiz") {
-          const updatedQuestions = step.data.questions.map(
-            (questionObj: typeof QuizQuestionDefaultInput, qIndex: number) => {
-              if (qIndex === questionIndex) {
-                return {
-                  ...questionObj,
-                  correct_answers: [optionIndex],
-                };
-              }
-              return questionObj;
+ const handleCorrectAnswer = useCallback(
+  (optionIndex: number, questionIndex: number) => {
+    const updatedSteps = steps.map((step, i) => {
+      if (i === index && step.type === "Quiz") {
+        const updatedQuestions = step.data.questions.map(
+          (questionObj: typeof QuizQuestionDefaultInput, qIndex: number) => {
+            if (qIndex === questionIndex) {
+              return {
+                ...questionObj,
+                correct_answers: [optionIndex - 1], // Subtract 1 to map to API
+              };
             }
-          );
+            return questionObj;
+          }
+        );
 
-          return {
-            ...step,
-            data: {
-              ...step.data,
-              questions: updatedQuestions,
-            },
-          };
-        }
-        return step;
-      });
-      setSteps(updatedSteps);
-    },
-    [steps]
-  );
-
+        return {
+          ...step,
+          data: {
+            ...step.data,
+            questions: updatedQuestions,
+          },
+        };
+      }
+      return step;
+    });
+    setSteps(updatedSteps);
+  },
+  [steps, index, setSteps]
+);
   const handleAddQuestion = useCallback(() => {
     const updatedSteps = steps.map((step, i) => {
       if (i === index && step.type === "Quiz") {
@@ -149,6 +150,35 @@ const QuizStep: FunctionComponent<QuizStepProps> = ({
 
     setSteps(updatedSteps);
   }, [steps]);
+
+  const handleDeleteQuestion = useCallback(
+    (questionId: number, quizId: number, questionIndex: number) => {
+      AdminService.deleteQuizQuestion({
+        id: questionId,
+        quiz_id: quizId,
+      });
+  
+      const updatedSteps = steps.map((step, i) => {
+        if (i === index && step.type === "Quiz") {
+          const updatedQuestions = step.data.questions.filter(
+            (_: any, qIndex: number) => qIndex !== questionIndex
+          );
+          return {
+            ...step,
+            data: {
+              ...step.data,
+              questions: updatedQuestions,
+            },
+          };
+        }
+        return step;
+      });
+  
+      setSteps(updatedSteps);
+    },
+    [steps]
+  );
+  
 
   return (
     <div className="flex flex-col gap-8 pt-2">
@@ -222,17 +252,23 @@ const QuizStep: FunctionComponent<QuizStepProps> = ({
         {step.data.questions?.map(
           (
             eachQuestion: typeof QuizQuestionDefaultInput,
-            questionIndex: number
+            questionIndex: number,
           ) => (
             <InputCard key={"questionCategory-" + questionIndex}>
               <div className="flex flex-col gap-1">
-                <TextInput
-                  onChange={(e) => handleQuestionChange(e, questionIndex)}
-                  value={eachQuestion.question}
-                  name="question"
-                  label={`Describe your question`}
-                  placeholder={`Question ${questionIndex + 1}`}
-                />
+                <div className="flex justify-between items-center">
+                  <TextInput
+                    onChange={(e) => handleQuestionChange(e, questionIndex)}
+                    value={eachQuestion.question}
+                    name="question"
+                    label={`Describe your question`}
+                    placeholder={`Question ${questionIndex + 1}`}
+                  />
+                  <FaTrash
+                    onClick={() => handleDeleteQuestion(eachQuestion.id, step.data.quiz_id, questionIndex)}
+                    className="text-red-500 cursor-pointer"
+                  />  
+                </div>
                 <Typography type={TEXT_TYPE.BODY_MICRO} color="textGray">
                   Write the question&apos;s description.
                 </Typography>

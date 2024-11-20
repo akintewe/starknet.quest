@@ -54,8 +54,7 @@ const Quest: FunctionComponent<QuestPageProps> = ({
     }
   }, []);
 
-  // this fetches quest data
-  useEffect(() => {
+  const fetchQuestData = useCallback(async () => {
     getQuestById(questId)
       .then((data) => {
         if (!data) {
@@ -77,6 +76,11 @@ const Quest: FunctionComponent<QuestPageProps> = ({
           setErrorPageDisplay(true);
         }
       });
+  }, [questId]);
+
+  useEffect(() => {
+    if (!questId) return;
+    fetchQuestData();
   }, [questId]);
 
   useEffect(() => {
@@ -147,6 +151,7 @@ const Quest: FunctionComponent<QuestPageProps> = ({
           setShowDomainPopup={setShowDomainPopup}
           hasRootDomain={hasRootDomain}
           hasNftReward={hasNftReward}
+          fetchQuestData={fetchQuestData}
         />
       </div>
     </>

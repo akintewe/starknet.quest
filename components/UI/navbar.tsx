@@ -4,7 +4,12 @@ import Link from "next/link";
 import React, { useState, useEffect, FunctionComponent } from "react";
 import styles from "@styles/components/navbar.module.css";
 import Button from "./button";
-import { useConnect, useAccount, useDisconnect } from "@starknet-react/core";
+import {
+  useConnect,
+  useAccount,
+  useDisconnect,
+  Connector,
+} from "@starknet-react/core";
 import ModalMessage from "./modalMessage";
 import { useDisplayName } from "@hooks/displayName.tsx";
 import { constants } from "starknet";
@@ -26,6 +31,7 @@ import { PendingBoostClaim } from "types/backTypes";
 import Typography from "./typography/typography";
 import { TEXT_TYPE } from "@constants/typography";
 import Hamburger from "./hamburger";
+import { sortConnectors } from "@utils/connectors";
 
 const Navbar: FunctionComponent = () => {
   const currentNetwork = getCurrentNetwork();
@@ -53,10 +59,11 @@ const Navbar: FunctionComponent = () => {
       linkText: "",
     },
   ]);
-  const { starknetkitConnectModal } = useStarknetkitConnectModal({
-    connectors: availableConnectors,
-  });
+  const sortedConnectors = sortConnectors(availableConnectors);
 
+  const { starknetkitConnectModal } = useStarknetkitConnectModal({
+    connectors: sortedConnectors as any,
+  });
   const fetchAndUpdateNotifications = async () => {
     if (!address) return;
     const res = await getPendingBoostClaims(hexToDecimal(address));
@@ -94,7 +101,7 @@ const Navbar: FunctionComponent = () => {
         const connector = availableConnectors.find(
           (item) => item.id === connectordId
         );
-        await connectAsync({ connector });
+        await connectAsync({ connector: connector as Connector });
       }
     };
     connectToStarknet();
@@ -121,7 +128,7 @@ const Navbar: FunctionComponent = () => {
     if (!connector) {
       return;
     }
-    await connectAsync({ connector });
+    await connectAsync({ connector: connector as Connector });
     localStorage.setItem("SQ-connectedWallet", connector.id);
   };
 
@@ -174,18 +181,24 @@ const Navbar: FunctionComponent = () => {
 
   return (
     <>
-      <div className={`fixed w-full z-20`} id="nav">
+      <div
+        className={`fixed w-full z-20`}
+        id='nav'
+      >
         <div
           className={`${styles.navbarContainer} ${
             navbarBg ? styles.navbarScrolled : ""
           }`}
         >
           <div className={styles.navbarLogo}>
-            <Link href="/" className="modified-cursor-pointer">
+            <Link
+              href='/'
+              className='modified-cursor-pointer'
+            >
               <Image
                 className={styles.logo}
-                src="/visuals/starknetquestLogo.svg"
-                alt="Starknet.id Logo"
+                src='/visuals/starknetquestLogo.svg'
+                alt='Starknet.id Logo'
                 width={70}
                 height={70}
                 priority
@@ -193,8 +206,8 @@ const Navbar: FunctionComponent = () => {
             </Link>
           </div>
           <div>
-            <ul className="hidden lg:flex uppercase items-center ">
-              <Link href="/">
+            <ul className='hidden lg:flex uppercase items-center '>
+              <Link href='/'>
                 <li className={styles.menuItem}>Quests</li>
               </Link>
               <Link href={`/discover/defi`}>
@@ -215,13 +228,13 @@ const Navbar: FunctionComponent = () => {
                       informationNotifications[0]?.title?.length > 0) &&
                     address ? (
                       <NotificationUnreadIcon
-                        width="24"
+                        width='24'
                         color={theme.palette.secondary.dark}
-                        secondColor="#D32F2F"
+                        secondColor='#D32F2F'
                       ></NotificationUnreadIcon>
                     ) : (
                       <NotificationIcon
-                        width="24"
+                        width='24'
                         color={theme.palette.secondary.dark}
                       />
                     )}
@@ -235,8 +248,11 @@ const Navbar: FunctionComponent = () => {
                 disconnectByClick={disconnectByClick}
               />
             </ul>
-            <div className="lg:hidden">
-              <Hamburger active={nav} onClick={handleNav} />
+            <div className='lg:hidden'>
+              <Hamburger
+                active={nav}
+                onClick={handleNav}
+              />
             </div>
           </div>
         </div>
@@ -254,10 +270,10 @@ const Navbar: FunctionComponent = () => {
               nav ? styles.mobileNavbarShown : styles.mobileNavbarHidden
             }`}
           >
-            <div className="h-full flex flex-col">
-              <div className="py-4 my-auto text-center font-extrabold">
-                <ul className="uppercase text-babe-blue">
-                  <Link href="/">
+            <div className='h-full flex flex-col'>
+              <div className='py-4 my-auto text-center font-extrabold'>
+                <ul className='uppercase text-babe-blue'>
+                  <Link href='/'>
                     <li
                       onClick={() => setNav(false)}
                       className={styles.menuItemSmall}
@@ -265,7 +281,7 @@ const Navbar: FunctionComponent = () => {
                       Quests
                     </li>
                   </Link>
-                  <Link href="/discover/defi">
+                  <Link href='/discover/defi'>
                     <li
                       onClick={() => setNav(false)}
                       className={styles.menuItemSmall}
@@ -286,27 +302,33 @@ const Navbar: FunctionComponent = () => {
                 </ul>
               </div>
             </div>
-            <div className="flex flex-col items-center my-4 w-full">
+            <div className='flex flex-col items-center my-4 w-full'>
               <div className={styles.connectButtonContainer}>
                 <Button onClick={onTopButtonClick}>{topButtonText()}</Button>
               </div>
-              <div className="flex">
+              <div className='flex'>
                 <div className={styles.socialIconContainer}>
                   <a
-                    href="https://twitter.com/starknet_quest"
-                    target="_blank"
-                    rel="noreferrer"
+                    href='https://twitter.com/starknet_quest'
+                    target='_blank'
+                    rel='noreferrer'
                   >
-                    <FaTwitter size={28} color={theme.palette.secondary.main} />
+                    <FaTwitter
+                      size={28}
+                      color={theme.palette.secondary.main}
+                    />
                   </a>
                 </div>
                 <div className={styles.socialIconContainer}>
                   <a
-                    href="https://discord.gg/byEGk6w6T6"
-                    target="_blank"
-                    rel="noreferrer"
+                    href='https://discord.gg/byEGk6w6T6'
+                    target='_blank'
+                    rel='noreferrer'
                   >
-                    <FaDiscord size={28} color={theme.palette.secondary.main} />
+                    <FaDiscord
+                      size={28}
+                      color={theme.palette.secondary.main}
+                    />
                   </a>
                 </div>
               </div>
@@ -319,12 +341,12 @@ const Navbar: FunctionComponent = () => {
         title={"Wrong network"}
         closeModal={() => setIsWrongNetwork(false)}
         message={
-          <div className="mt-3 flex flex-col items-center justify-center text-center">
+          <div className='mt-3 flex flex-col items-center justify-center text-center'>
             <Typography type={TEXT_TYPE.BODY_DEFAULT}>
               This app only supports Starknet {network}, you have to change your
               network to be able use it.
             </Typography>
-            <div className="mt-3">
+            <div className='mt-3'>
               <Button onClick={() => disconnectByClick()}>
                 {`Disconnect`}
               </Button>

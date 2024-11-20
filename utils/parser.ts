@@ -122,10 +122,10 @@ export class LdtkReader {
         (t) => t.uid === entity?.tileRect.tilesetUid
       );
       if (!entity || !tileset) return;
-      let spritesPerRow = tileset?.pxWid / tileset?.tileGridSize ?? 1;
-      let spritesPerColumn = tileset?.pxHei / tileset?.tileGridSize ?? 1;
-      let xIndex = entity?.tileRect.x / tileset?.tileGridSize ?? 0;
-      let yIndex = entity?.tileRect.y / tileset?.tileGridSize ?? 0;
+      let spritesPerRow = tileset?.pxWid / tileset?.tileGridSize;
+      let spritesPerColumn = tileset?.pxHei / tileset?.tileGridSize;
+      let xIndex = entity?.tileRect.x / tileset?.tileGridSize;
+      let yIndex = entity?.tileRect.y / tileset?.tileGridSize;
       let xOffset = xIndex / spritesPerRow;
       let yOffset =
         1 - (yIndex + (entity?.tileRect.h ?? 0) / 16) / spritesPerColumn;
@@ -138,14 +138,10 @@ export class LdtkReader {
         },
         textureOffset: { x: xOffset, y: yOffset },
         textureRepeat: {
-          x:
-            1 /
-            (spritesPerRow /
-              ((entity?.tileRect.w ?? 0) / tileset?.tileGridSize ?? 1)),
+          x: 1 / (spritesPerRow / (entity?.tileRect.w / tileset?.tileGridSize)),
           y:
             1 /
-            (spritesPerColumn /
-              ((entity?.tileRect.h ?? 0) / tileset?.tileGridSize ?? 1)),
+            (spritesPerColumn / (entity?.tileRect.h / tileset?.tileGridSize)),
         },
         z: 0.23,
       });

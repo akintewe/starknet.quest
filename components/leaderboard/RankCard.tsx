@@ -54,7 +54,8 @@ const RankCard: FunctionComponent<RankCardProps> = ({
       </div>
 
       <div className={styles.rank_card_naming}>
-        <Avatar address={name} width="32" />
+      
+        <Avatar address={decimalToHex(name)} width="32" />
         <div>{displayName}</div>
       </div>
 

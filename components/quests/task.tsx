@@ -32,6 +32,7 @@ const Task: FunctionComponent<Task> = ({
   hasRootDomain,
   customError,
   expired,
+  checkUserRewards,
 }) => {
   const [isClicked, setIsClicked] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -89,12 +90,14 @@ const Task: FunctionComponent<Task> = ({
           await new Promise((resolve) =>
             setTimeout(() => {
               setIsVerified(true);
+              if (checkUserRewards) checkUserRewards();
               setIsLoading(false);
               resolve(null);
             }, timeout)
           );
         } else {
           setIsVerified(true);
+          if (checkUserRewards) checkUserRewards();
           setIsLoading(false);
         }
       } catch (error) {

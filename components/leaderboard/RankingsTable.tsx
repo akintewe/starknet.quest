@@ -146,7 +146,8 @@ const RankingsTable: FunctionComponent<RankingProps> = ({
                       </Typography>
                     </div>
                     <div className={styles.ranking_profile_layout}>
-                      <Avatar address={item.address} width="32" />
+                      
+                      <Avatar address={decimalToHex(item.address)} width="32" />
                       <Typography type={TEXT_TYPE.BODY_DEFAULT}
                         style={{
                           color:

@@ -13,7 +13,7 @@ import {
 } from "@constants/notifications";
 import { CircularProgress } from "@mui/material";
 import { getCurrentNetwork } from "@utils/network";
-import { useWaitForTransaction } from "@starknet-react/core";
+import { useTransactionReceipt } from "@starknet-react/core";
 import { useNotificationManager } from "@hooks/useNotificationManager";
 
 type NotificationDetailProps = {
@@ -27,7 +27,7 @@ const NotificationDetail: FunctionComponent<NotificationDetailProps> = ({
 }) => {
   const currentNetwork = getCurrentNetwork();
   const { updateNotificationStatus } = useNotificationManager();
-  const { data, error, isLoading, isError } = useWaitForTransaction({
+  const { data, error, isLoading, isError } = useTransactionReceipt({
     hash:
       notification.type === NotificationType.TRANSACTION
         ? notification.data.hash

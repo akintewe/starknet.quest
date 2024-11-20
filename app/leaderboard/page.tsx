@@ -14,7 +14,7 @@ import {
 } from "@services/apiService";
 import { calculatePercentile } from "@utils/numberService";
 import styles from "@styles/leaderboard.module.css";
-import { useAccount } from "@starknet-react/core";
+import { useAccount,type Address } from "@starknet-react/core";
 import LeaderboardSkeleton from "@components/skeletons/leaderboardSkeleton";
 import FeaturedQuest from "@components/UI/featured_banner/featuredQuest";
 import { QuestsContext } from "@context/QuestsProvider";
@@ -31,7 +31,6 @@ import Divider from "@mui/material/Divider";
 import Blur from "@components/shapes/blur";
 import RankingsTable from "@components/leaderboard/RankingsTable";
 import { TOP_50_TAB_STRING } from "@constants/common";
-import { hexToDecimal } from "@utils/feltService";
 import Avatar from "@components/UI/avatar";
 import RankingSkeleton from "@components/skeletons/rankingSkeleton";
 import { Button } from "@mui/material";
@@ -43,6 +42,8 @@ import {
   LeaderboardRankingParams,
   LeaderboardTopperParams,
 } from "../../types/backTypes";
+import { decimalToHex } from "@utils/feltService";
+
 
 export default function Page() {
   const router = useRouter();
@@ -71,6 +72,12 @@ export default function Page() {
   });
   const [inititalFetchTop50, setInititalFetchTop50] = useState(false);
 
+  const [leaderboardToppers, setLeaderboardToppers] =
+  useState<LeaderboardToppersData>({
+    best_users: [],
+    total_users: 0,
+  });
+
   const isTop50RankedView = useMemo(
     () =>
       !currentSearchedAddress &&
@@ -87,18 +94,21 @@ export default function Page() {
 
   // set user address on wallet connect and disconnect
   useEffect(() => {
-    setTimeout(() => {
-      setApiCallDelay(true);
-    }, 1000);
-    if (address === "") return;
+    const timeoutId = setTimeout(() => setApiCallDelay(true), 1000);
     if (address) setUserAddress(address);
     if (status === "disconnected") setUserAddress("");
+    return () => clearTimeout(timeoutId); // Cleanup 
   }, [address, status]);
 
   useEffect(() => {
     if (!apiCallDelay) return;
-    fetchPageData();
-  }, [apiCallDelay]);
+    const fetchTimeout = setTimeout(() => {
+        fetchPageData();
+    }, 500); 
+
+    return () => clearTimeout(fetchTimeout);
+}, [apiCallDelay]);
+
 
   const fetchRankingResults = useCallback(
     async (requestBody: LeaderboardRankingParams) => {
@@ -113,10 +123,9 @@ export default function Page() {
   const addRankingResults = useCallback(
     async (requestBody: LeaderboardRankingParams) => {
       const response = await fetchLeaderboardRankings(requestBody);
-      if (response)
-        setRanking((prev) => {
-          return { ...prev, ranking: [...prev.ranking, ...response.ranking] };
-        });
+      if (response) {
+        setRanking((prev) => ({ ...prev, ranking: [...prev.ranking, ...response.ranking] }));
+      }
     },
     []
   );
@@ -131,10 +140,7 @@ export default function Page() {
 
   const fetchPageData = useCallback(async () => {
     const requestBody = {
-      addr:
-        status === "connected"
-          ? hexToDecimal(address && address?.length > 0 ? address : userAddress)
-          : "",
+      addr: status === "connected" ? (address || userAddress) : "",
       page_size: 10,
       shift: 0,
       duration: timeFrameMap(duration),
@@ -154,11 +160,7 @@ export default function Page() {
     status,
   ]);
 
-  const [leaderboardToppers, setLeaderboardToppers] =
-    useState<LeaderboardToppersData>({
-      best_users: [],
-      total_users: 0,
-    });
+
 
   const contract = useMemo(() => {
     return new Contract(
@@ -206,10 +208,7 @@ export default function Page() {
   useEffect(() => {
     const checkIfValidAddress = async (address: string) => {
       try {
-        let domain = address;
-        if (isStarkDomain(address)) {
-          domain = getDomainWithoutStark(address);
-        }
+        const domain = isStarkDomain(address) ? getDomainWithoutStark(address) : address;
         const res: { message: boolean } = await verifyDomain(domain);
         if (res.message) {
           setSearchResults([domain.concat(".stark")]);
@@ -260,12 +259,7 @@ export default function Page() {
     }
     if (!checkIfLastPage && viewMore) {
       const requestBody = {
-        addr:
-          currentSearchedAddress.length > 0
-            ? currentSearchedAddress
-            : userAddress
-            ? hexToDecimal(userAddress)
-            : "",
+        addr: currentSearchedAddress || (userAddress ? (userAddress) : ""),
         page_size: rowsPerPage,
         shift: currentPage,
         duration: timeFrameMap(duration),
@@ -294,14 +288,7 @@ export default function Page() {
   */
   useEffect(() => {
     const requestBody = {
-      addr:
-        currentSearchedAddress.length > 0
-          ? currentSearchedAddress
-          : userAddress
-          ? hexToDecimal(userAddress)
-          : address
-          ? address
-          : "",
+      addr: currentSearchedAddress || (userAddress ? (userAddress) : address || ""),
       page_size: rowsPerPage,
       shift: 0,
       duration: timeFrameMap(duration),
@@ -326,14 +313,7 @@ export default function Page() {
   useEffect(() => {
     if (inititalFetchTop50 && address && duration !== TOP_50_TAB_STRING) {
       const requestBody = {
-        addr:
-          currentSearchedAddress.length > 0
-            ? currentSearchedAddress
-            : userAddress
-            ? hexToDecimal(userAddress)
-            : address
-            ? address
-            : "",
+         addr: currentSearchedAddress || (userAddress ? (userAddress) : address || ""),
         page_size: rowsPerPage,
         shift: 0,
         duration: timeFrameMap(duration),
@@ -453,7 +433,7 @@ export default function Page() {
                       <Avatar
                         address={
                           currentSearchedAddress.length > 0
-                            ? currentSearchedAddress
+                            ? decimalToHex(currentSearchedAddress)
                             : userAddress
                         }
                       />
@@ -544,7 +524,7 @@ export default function Page() {
                     selectedAddress={
                       currentSearchedAddress.length > 0
                         ? currentSearchedAddress
-                        : hexToDecimal(userAddress)
+                        : (userAddress)
                     }
                     searchedAddress={currentSearchedAddress}
                     leaderboardToppers={leaderboardToppers}
